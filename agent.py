@@ -108,6 +108,7 @@ Respond ONLY with valid JSON, no additional text."""
             except json.JSONDecodeError:
                 # If JSON parsing fails, return simplified analysis
                 print("Warning: Could not parse Claude response as JSON")
+                print(f"Response text (first 500 chars): {response_text[:500]}")
                 return self._fallback_analysis(emails)
 
         except Exception as e:
