@@ -106,10 +106,19 @@ Respond ONLY with valid JSON, no additional text."""
                 result = json.loads(response_text)
                 return result.get("emails", [])
             except json.JSONDecodeError:
-                # If JSON parsing fails, return simplified analysis
-                print("Warning: Could not parse Claude response as JSON")
-                print(f"Response text (first 500 chars): {response_text[:500]}")
-                return self._fallback_analysis(emails)
+                # Claude might wrap JSON in markdown code blocks
+                if "```json" in response_text:
+                    json_str = response_text.split("```json")[1].split("```")[0].strip()
+                    result = json.loads(json_str)
+                    return result.get("emails", [])
+                elif "```" in response_text:
+                    json_str = response_text.split("```")[1].strip()
+                    result = json.loads(json_str)
+                    return result.get("emails", [])
+                else:
+                    # If JSON parsing still fails, return simplified analysis
+                    print("Warning: Could not parse Claude response as JSON")
+                    return self._fallback_analysis(emails)
 
         except Exception as e:
             print(f"Error analyzing emails: {e}")
@@ -208,7 +217,16 @@ Provide insights as JSON with this structure:
             )
 
             response_text = response.content[0].text
-            insights_extra = json.loads(response_text)
+
+            # Handle markdown-wrapped JSON
+            if "```json" in response_text:
+                json_str = response_text.split("```json")[1].split("```")[0].strip()
+                insights_extra = json.loads(json_str)
+            elif "```" in response_text:
+                json_str = response_text.split("```")[1].strip()
+                insights_extra = json.loads(json_str)
+            else:
+                insights_extra = json.loads(response_text)
         except Exception as e:
             insights_extra = {
                 "inbox_health_score": health_score,
