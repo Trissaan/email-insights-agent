@@ -1,0 +1,3 @@
+# Allow data/ directory to exist in git without committing contents
+*
+!.gitignore

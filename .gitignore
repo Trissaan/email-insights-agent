@@ -1,4 +1,6 @@
-# OAuth & API credentials
+# Environment & credentials
+.env
+.env.local
 credentials.json
 token.json
 

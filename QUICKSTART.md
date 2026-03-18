@@ -46,7 +46,20 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
-## 4. Set Environment Variable
+## 4. Configure Environment
+
+Copy `.env.example` to `.env` and add your Anthropic API key:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your key:
+```env
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+**Alternative: Set environment variable directly**
 
 **Linux/Mac:**
 ```bash
@@ -62,6 +75,8 @@ $env:ANTHROPIC_API_KEY = "sk-..."
 ```cmd
 set ANTHROPIC_API_KEY=sk-...
 ```
+
+(The `.env` file approach is recommended for local development)
 
 ## 5. Run
 

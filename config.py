@@ -3,6 +3,11 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Paths
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -20,15 +25,15 @@ TOKEN_FILE = BASE_DIR / "token.json"
 
 # Claude API
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-CLAUDE_MODEL = "claude-opus-4-6"
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-opus-4-6")
 
 # Email analysis
-EMAIL_BATCH_SIZE = 50  # Chunk size for analysis
-MAX_EMAILS_INITIAL = 100
+EMAIL_BATCH_SIZE = int(os.getenv("EMAIL_BATCH_SIZE", "50"))
+MAX_EMAILS_INITIAL = int(os.getenv("MAX_EMAILS_INITIAL", "100"))
 
 # Cron scheduler
-CRON_HOUR = 8
-CRON_MINUTE = 0
+CRON_HOUR = int(os.getenv("CRON_HOUR", "8"))
+CRON_MINUTE = int(os.getenv("CRON_MINUTE", "0"))
 CRON_SCHEDULE = f"{CRON_MINUTE:02d} {CRON_HOUR:02d}"  # For display
 
 # Email categories
