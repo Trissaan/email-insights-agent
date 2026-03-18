@@ -96,7 +96,6 @@ Respond ONLY with valid JSON, no additional text."""
             response = self.client.messages.create(
                 model=CLAUDE_MODEL,
                 max_tokens=MAX_TOKENS_ANALYSIS,
-                thinking={"type": "adaptive"},
                 messages=[{"role": "user", "content": prompt}],
             )
 
