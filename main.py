@@ -238,6 +238,44 @@ def cron():
 
 
 @cli.command()
+@click.option("--port", default=None, type=int, help="Port to run webhook server (default: 5000)")
+@click.option("--debug", is_flag=True, default=False, help="Enable debug mode")
+def serve(port, debug):
+    """Start WhatsApp/SMS conversational webhook server."""
+    validate_setup()
+
+    # Import here to avoid import errors if Flask not installed
+    try:
+        from webhook_server import app as flask_app
+        from config import WEBHOOK_PORT
+    except ImportError:
+        console.print(
+            "❌ [red]Flask and Twilio dependencies not installed[/red]\n"
+            "   Run: pip install -r requirements.txt",
+            style="bold red",
+        )
+        sys.exit(1)
+
+    # Determine port
+    run_port = port or WEBHOOK_PORT
+
+    # Display startup info
+    console.print(Panel("[bold cyan]WhatsApp/SMS Webhook Server[/bold cyan]", expand=False))
+    console.print(f"📡 Webhook URL: [cyan]http://localhost:{run_port}/webhook[/cyan]\n")
+    console.print("ℹ️  To expose publicly, use ngrok:")
+    console.print(f"   [yellow]ngrok http {run_port}[/yellow]\n")
+    console.print("Then configure Twilio webhook endpoint to:")
+    console.print("   [yellow]https://<ngrok-url>.ngrok.io/webhook[/yellow]\n")
+    console.print("🚀 Server starting...\n")
+
+    try:
+        flask_app.run(host="0.0.0.0", port=run_port, debug=debug)
+    except Exception as e:
+        console.print(f"❌ Error: {e}", style="bold red")
+        sys.exit(1)
+
+
+@cli.command()
 @click.option("--date", default=None, help="Date in YYYY-MM-DD format (defaults to most recent)")
 def report(date):
     """View saved report for a date."""
