@@ -29,6 +29,16 @@ validator = RequestValidator(TWILIO_AUTH_TOKEN)
 agent = ConversationalEmailAgent(api_key=ANTHROPIC_API_KEY)
 
 
+@app.route("/", methods=["GET"])
+def status():
+    """Health check endpoint."""
+    return {
+        "status": "online",
+        "message": "WhatsApp/SMS Email Agent is running",
+        "webhook": "POST /webhook",
+    }, 200
+
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     """
