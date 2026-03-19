@@ -261,12 +261,12 @@ def serve(port, debug):
 
     # Display startup info
     console.print(Panel("[bold cyan]WhatsApp/SMS Webhook Server[/bold cyan]", expand=False))
-    console.print(f"📡 Webhook URL: [cyan]http://localhost:{run_port}/webhook[/cyan]\n")
-    console.print("ℹ️  To expose publicly, use ngrok:")
+    console.print(f"[bold cyan]>> Webhook URL:[/bold cyan] [cyan]http://localhost:{run_port}/webhook[/cyan]\n")
+    console.print("[bold]To expose publicly, use ngrok:[/bold]")
     console.print(f"   [yellow]ngrok http {run_port}[/yellow]\n")
-    console.print("Then configure Twilio webhook endpoint to:")
+    console.print("[bold]Then configure Twilio webhook endpoint to:[/bold]")
     console.print("   [yellow]https://<ngrok-url>.ngrok.io/webhook[/yellow]\n")
-    console.print("🚀 Server starting...\n")
+    console.print("[bold]Server starting...[/bold]\n")
 
     try:
         flask_app.run(host="0.0.0.0", port=run_port, debug=debug)
