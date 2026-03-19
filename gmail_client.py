@@ -1,9 +1,10 @@
-"""Gmail API client for fetching and parsing emails."""
+"""Gmail API client for fetching, parsing, and sending emails."""
 
 import base64
 import email
 from datetime import datetime
-from typing import List, Optional
+from email.mime.text import MIMEText
+from typing import Dict, List, Optional
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -28,6 +29,12 @@ class GmailClient:
         # Load existing token
         if TOKEN_FILE.exists():
             creds = Credentials.from_authorized_user_file(TOKEN_FILE, GMAIL_SCOPES)
+
+            # Check if granted scopes match required scopes
+            if creds and creds.scopes and not set(GMAIL_SCOPES).issubset(set(creds.scopes)):
+                print("Gmail scopes have changed. Re-authenticating...")
+                TOKEN_FILE.unlink(missing_ok=True)
+                creds = None
 
         # If no valid credentials, get new ones
         if not creds or not creds.valid:
@@ -174,3 +181,107 @@ class GmailClient:
                     return ""
 
         return ""
+
+    def send_email(self, to: str, subject: str, body: str) -> Dict:
+        """
+        Send a new email.
+
+        Args:
+            to: Recipient email address
+            subject: Email subject
+            body: Email body (plain text)
+
+        Returns:
+            Gmail API response dict with message ID
+
+        Raises:
+            RuntimeError: If email sending fails
+        """
+        try:
+            msg = MIMEText(body)
+            msg["to"] = to
+            msg["subject"] = subject
+
+            raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+            send_message = {"raw": raw_message}
+
+            result = self.service.users().messages().send(userId="me", body=send_message).execute()
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Failed to send email to {to}: {e}")
+
+    def reply_to_email(self, message_id: str, body: str) -> Dict:
+        """
+        Reply to an existing email thread.
+
+        Args:
+            message_id: Gmail message ID to reply to
+            body: Reply body (plain text)
+
+        Returns:
+            Gmail API response dict with message ID
+
+        Raises:
+            RuntimeError: If reply fails
+        """
+        try:
+            # Fetch original message to get thread info
+            original = self.service.users().messages().get(
+                userId="me", id=message_id, format="full"
+            ).execute()
+
+            headers = original["payload"]["headers"]
+            header_dict = {h["name"]: h["value"] for h in headers}
+
+            to = header_dict.get("From", "")
+            subject = header_dict.get("Subject", "")
+            thread_id = original.get("threadId", "")
+
+            # Prepend "Re:" if not already present
+            if not subject.startswith("Re:"):
+                subject = f"Re: {subject}"
+
+            msg = MIMEText(body)
+            msg["to"] = to
+            msg["subject"] = subject
+            msg["In-Reply-To"] = header_dict.get("Message-ID", "")
+            msg["References"] = header_dict.get("Message-ID", "")
+
+            raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+            send_message = {"raw": raw_message, "threadId": thread_id}
+
+            result = self.service.users().messages().send(userId="me", body=send_message).execute()
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Failed to reply to email {message_id}: {e}")
+
+    def search_emails(self, query: str, max_results: int = 10) -> List[dict]:
+        """
+        Search emails using Gmail query syntax.
+
+        Args:
+            query: Gmail search query (e.g., "from:user@example.com", "subject:test")
+            max_results: Maximum number of results to return
+
+        Returns:
+            List of email dictionaries matching the query
+
+        Raises:
+            RuntimeError: If search fails
+        """
+        try:
+            results = self.service.users().messages().list(
+                userId="me", q=query, maxResults=max_results
+            ).execute()
+
+            messages = results.get("messages", [])
+            emails = []
+
+            for msg in messages:
+                email_data = self._parse_message(msg["id"])
+                if email_data:
+                    emails.append(email_data)
+
+            return emails
+        except Exception as e:
+            raise RuntimeError(f"Failed to search emails with query '{query}': {e}")
