@@ -3,6 +3,7 @@
 .env.local
 credentials.json
 token.json
+data/conversations.json
 
 # Python
 __pycache__/

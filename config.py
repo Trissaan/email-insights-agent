@@ -19,7 +19,11 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 INSIGHTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Gmail API
-GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+GMAIL_SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/gmail.modify",
+]
 CREDENTIALS_FILE = BASE_DIR / "credentials.json"
 TOKEN_FILE = BASE_DIR / "token.json"
 
@@ -52,3 +56,18 @@ SENTIMENTS = ["POSITIVE", "NEUTRAL", "NEGATIVE"]
 
 # API limits
 MAX_TOKENS_ANALYSIS = 16000
+MAX_TOKENS_CONVERSATION = 1024
+
+# Twilio (WhatsApp/SMS)
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")  # e.g., "whatsapp:+14155238886"
+WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT", "5000"))
+SKIP_TWILIO_VALIDATION = os.getenv("SKIP_TWILIO_VALIDATION", "false").lower() == "true"
+ALLOWED_PHONE_NUMBERS = [
+    p.strip() for p in os.getenv("ALLOWED_PHONE_NUMBERS", "").split(",") if p.strip()
+]
+
+# Conversation history
+CONVERSATION_MAX_MESSAGES = int(os.getenv("CONVERSATION_MAX_MESSAGES", "20"))
+CONVERSATIONS_FILE = DATA_DIR / "conversations.json"
